@@ -9,6 +9,7 @@ Christiaan Knaap (Furore)
 Martijn Harthoorn (Furore)
 Michel Rutten (Furore)
 Tilo Christ (Siemens)
+Michael van der Zel (UMCG)
 
 HSCIC (NHS Digital) for their financial support
 

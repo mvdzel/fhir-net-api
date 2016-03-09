@@ -7,7 +7,7 @@ This is the official support API for working with [HL7 FHIR][fhir-spec] on the M
 
 This library provides:
 * Class models for working with the FHIR data model using POCO's
-* Xml and Json parsers and serializers
+* Xml, Json and Turtle parsers and serializers
 * A REST client for working with FHIR-compliant servers
 * Helper classes to work with the specification metadata, most notably `StructureDefinition` and generation of differentials
 * Validation of instances based on profiles
