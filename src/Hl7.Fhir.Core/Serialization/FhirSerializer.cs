@@ -96,8 +96,15 @@ namespace Hl7.Fhir.Serialization
             });
         }
 
+        public static string SerializeToTurtle(Base instance, bool summary = false, string root = null)
+        {
+            TurtleFhirWriter tw = new TurtleFhirWriter();
+            Serialize(instance, tw, summary, root);
+            return tw.turtleAsString();
+        }
+
         // [WMR 20160421] Caller is responsible for disposing writer
-        public static void SerializeResource(Resource resource, XmlWriter writer, SummaryType summary = SummaryType.False)
+        public static void SerializeResource(Resource resource, XmlWriter writer, bool summary = false)
         {
             Serialize(resource, new XmlFhirWriter(writer), summary);
         }
@@ -149,7 +156,20 @@ namespace Hl7.Fhir.Serialization
             //jw.Flush();
             //return stream.ToArray();
 
+<<<<<<< HEAD
             using (MemoryStream stream = new MemoryStream())
+=======
+            serializer(jw);
+
+            jw.Flush();
+
+            return stream.ToArray();
+        }
+
+        internal class BetterDecimalJsonTextWriter : JsonTextWriter
+        {
+            public BetterDecimalJsonTextWriter(TextWriter textWriter) : base(textWriter)
+>>>>>>> Initial work on the TurtleFhirWriter
             {
                 using (var sw = new StreamWriter(stream, new UTF8Encoding(false)))
                 using (JsonWriter jw = SerializationUtil.CreateJsonTextWriter(sw))
@@ -166,6 +186,11 @@ namespace Hl7.Fhir.Serialization
         private static string jsonWriterToString(Action<JsonWriter> serializer)
         {
             StringBuilder resultBuilder = new StringBuilder();
+<<<<<<< HEAD
+=======
+            System.IO.StringWriter sw = new System.IO.StringWriter(resultBuilder);
+            JsonWriter jw = new BetterDecimalJsonTextWriter(sw);
+>>>>>>> Initial work on the TurtleFhirWriter
 
             // [WMR 20160421] Explicit disposal
 
@@ -186,7 +211,6 @@ namespace Hl7.Fhir.Serialization
                 return resultBuilder.ToString();
             }
         }
-
 
         private static string xmlWriterToString(Action<XmlWriter> serializer)
         {
