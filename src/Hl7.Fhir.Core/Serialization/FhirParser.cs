@@ -34,9 +34,44 @@ namespace Hl7.Fhir.Serialization
 
         public static IFhirReader CreateFhirReader(string xml, bool disallowXsiAttributesOnRoot)
         {
+<<<<<<< HEAD
             // [WMR 20160421] Explicit disposal
             // return new XmlDomFhirReader(SerializationUtil.XmlReaderFromXmlText(xml));
             using (var reader = SerializationUtil.XmlReaderFromXmlText(xml))
+=======
+            return data.TrimStart().StartsWith("{");
+        }
+
+        public static bool ProbeIsTurtle(string data)
+        {
+            return data.TrimStart().StartsWith("@");
+        }
+
+        /// <summary>
+        /// Replace all the XML specific special characters with the XHTML equivalents
+        /// </summary>
+        /// <remarks>
+        /// this is based on own research plus combining with results shown here:
+        /// http://www.codeproject.com/Articles/298519/Fast-Token-Replacement-in-Csharp
+        /// The RegEx approach does not require multiple passes or string creations
+        /// while replacing all the items.
+        /// It occurs in O(n) StringBuilder concatenations + O(n) dictionary lookups
+        /// </remarks>
+        /// <param name="xml"></param>
+        /// <returns></returns>
+        internal static string SanitizeXml(string xml)
+        {
+            if (string.IsNullOrEmpty(xml))
+                return xml;
+
+            Dictionary<string, string> xr = GetXmlReplacements();
+
+            //s.Reset();
+            //s.Start();
+            string resultRE;
+            var matches = _re.Matches(xml);
+            if (matches.Count > 0)
+>>>>>>> Initial implementation of the TurtleFhirReader
             {
                 // [WMR 20160421] Safely dispose reader after executing JsonDomFhirReader ctor
                 return new XmlDomFhirReader(reader, disallowXsiAttributesOnRoot);
@@ -136,6 +171,7 @@ namespace Hl7.Fhir.Serialization
             Settings = new ParserSettings();
         }
 
+<<<<<<< HEAD
         //public static void Clear()
         //{
         //    _inspector = createDefaultModelInspector();
@@ -158,6 +194,14 @@ namespace Hl7.Fhir.Serialization
         private static Lazy<ModelInspector> _inspector = createDefaultModelInspector();
 
         private static Lazy<ModelInspector> createDefaultModelInspector()
+=======
+        public static StringReader TurtleReaderFromTurtle(string turtle)
+        {
+            return new StringReader(turtle);
+        }
+
+        public static XmlReader XmlReaderFromXml(string xml)
+>>>>>>> Initial implementation of the TurtleFhirReader
         {
             return new Lazy<ModelInspector>(() =>
             {
@@ -214,6 +258,11 @@ namespace Hl7.Fhir.Serialization
             return SerializationUtil.XDocumentFromXmlText(xml);
         }
 
+        public static IFhirReader FhirReaderFromTurtle(string turtle)
+        {
+            return new TurtleFhirReader(TurtleReaderFromTurtle(turtle));
+        }
+
         [Obsolete("Use FhirXmlParser.CreateFhirReader() instead")]
         public static IFhirReader FhirReaderFromXml(string xml, bool disallowXsiAttributesOnRoot = false)
         {
@@ -259,6 +308,17 @@ namespace Hl7.Fhir.Serialization
                 return _jsonParser.Parse<Resource>(json);
             else
                 return _jsonParser.Parse(json, dataType);
+        }
+
+        public static Resource ParseResourceFromTurtle(string turtle)
+        {
+            return (Resource)ParseFromTurtle(turtle);
+        }
+
+        public static Base ParseFromTurtle(string turtle, Type dataType = null)
+        {
+            var reader = FhirReaderFromTurtle(turtle);
+            return Parse(reader, dataType);
         }
 
         [Obsolete("Create an instance of FhirXmlParser and call Parse<Resource>()")]
