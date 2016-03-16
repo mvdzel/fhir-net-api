@@ -36,7 +36,7 @@ namespace Hl7.Fhir.Serialization
             if (contained)
                 WriteStartComplexContent();
 
-            WriteStartProperty(name, "");
+            WriteStartProperty(null, name);
         }
 
         public void WriteEndRootObject(bool contained=false)
@@ -49,7 +49,7 @@ namespace Hl7.Fhir.Serialization
         private string _currentMemberName = null;
 
 
-        public void WriteStartProperty(string name, string className)
+        public void WriteStartProperty(PropertyMapping propMap, string name)
         {
             _currentMemberName = name;
         }
