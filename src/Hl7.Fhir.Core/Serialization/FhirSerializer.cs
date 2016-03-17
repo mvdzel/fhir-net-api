@@ -96,6 +96,12 @@ namespace Hl7.Fhir.Serialization
             });
         }
 
+        // Only used in RoundtripTest
+        public static string SerializeResourceToTurtle(Resource resource)
+        {
+            return SerializeToTurtle(resource);
+        }
+
         public static string SerializeToTurtle(Base instance, bool summary = false, string root = null)
         {
             TurtleFhirWriter tw = new TurtleFhirWriter();
@@ -156,9 +162,7 @@ namespace Hl7.Fhir.Serialization
             //jw.Flush();
             //return stream.ToArray();
 
-<<<<<<< HEAD
             using (MemoryStream stream = new MemoryStream())
-=======
             serializer(jw);
 
             jw.Flush();
@@ -169,7 +173,6 @@ namespace Hl7.Fhir.Serialization
         internal class BetterDecimalJsonTextWriter : JsonTextWriter
         {
             public BetterDecimalJsonTextWriter(TextWriter textWriter) : base(textWriter)
->>>>>>> Initial work on the TurtleFhirWriter
             {
                 using (var sw = new StreamWriter(stream, new UTF8Encoding(false)))
                 using (JsonWriter jw = SerializationUtil.CreateJsonTextWriter(sw))
@@ -186,11 +189,8 @@ namespace Hl7.Fhir.Serialization
         private static string jsonWriterToString(Action<JsonWriter> serializer)
         {
             StringBuilder resultBuilder = new StringBuilder();
-<<<<<<< HEAD
-=======
             System.IO.StringWriter sw = new System.IO.StringWriter(resultBuilder);
             JsonWriter jw = new BetterDecimalJsonTextWriter(sw);
->>>>>>> Initial work on the TurtleFhirWriter
 
             // [WMR 20160421] Explicit disposal
 

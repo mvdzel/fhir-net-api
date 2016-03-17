@@ -55,6 +55,7 @@ namespace Hl7.Fhir.Tests.Serialization
             string baseTestPath = Path.Combine(Path.GetTempPath(), "FHIRRoundTripTestXml");
             createEmptyDir(baseTestPath);
 
+<<<<<<< HEAD
             Debug.WriteLine("Roundtripping xml->json->xml");
             createEmptyDir(baseTestPath);
             doRoundTrip(examples, baseTestPath);
@@ -73,6 +74,32 @@ namespace Hl7.Fhir.Tests.Serialization
             Debug.WriteLine("Roundtripping json->xml->json");
             createEmptyDir(baseTestPath);
             doRoundTrip(examples, baseTestPath);
+=======
+            Debug.WriteLine("First, roundtripping xml->json->xml");
+            var baseTestPathXml = Path.Combine(baseTestPath, "FromXml");
+            createEmptyDir(baseTestPathXml);
+            doRoundTrip(examplesXml, baseTestPathXml, false);
+
+            Debug.WriteLine("Then, roundtripping json->xml->json");
+            var baseTestPathJson = Path.Combine(baseTestPath, "FromJson");
+            createEmptyDir(baseTestPathJson);
+            doRoundTrip(examplesJson, baseTestPathJson, false);
+        }
+
+        [TestMethod]
+        public void XmlTurtleRoundtripOfAllExamples()
+        {
+            string examplesXml = @"TestData\examples.zip";
+
+            // Create an empty temporary directory for us to dump the roundtripped intermediary files in
+            string baseTestPath = Path.Combine(Path.GetTempPath(), "FHIRRoundTripTest");
+            createEmptyDir(baseTestPath);
+
+            Debug.WriteLine("First, roundtripping xml->turtle->xml");
+            var baseTestPathXml = Path.Combine(baseTestPath, "FromXml");
+            createEmptyDir(baseTestPathXml);
+            doRoundTrip(examplesXml, baseTestPathXml, true);
+>>>>>>> Extended RoundTripTest with xml-turtle roundtrip.
         }
 
 
@@ -101,7 +128,11 @@ namespace Hl7.Fhir.Tests.Serialization
             Directory.CreateDirectory(baseTestPath);
         }
 
+<<<<<<< HEAD
         private void doRoundTrip(ZipArchive examplesZip, string baseTestPath)
+=======
+        private void doRoundTrip(string examplesZip, string baseTestPath, bool turtle)
+>>>>>>> Extended RoundTripTest with xml-turtle roundtrip.
         {
             var examplePath = Path.Combine(baseTestPath, "input");
             Directory.CreateDirectory(examplePath);
@@ -112,6 +143,7 @@ namespace Hl7.Fhir.Tests.Serialization
 
             var intermediate1Path = Path.Combine(baseTestPath, "intermediate1");
             Debug.WriteLine("Converting files in {0} to {1}", baseTestPath, intermediate1Path);
+<<<<<<< HEAD
             var sw = new Stopwatch();
             sw.Start();
             convertFiles(examplePath, intermediate1Path);
@@ -127,6 +159,12 @@ namespace Hl7.Fhir.Tests.Serialization
             Debug.WriteLine("Conversion took {0} seconds", sw.ElapsedMilliseconds / 1000);
             sw.Reset();
 
+=======
+            convertFiles(examplePath, intermediate1Path, turtle);
+            var intermediate2Path = Path.Combine(baseTestPath, "intermediate2");
+            Debug.WriteLine("Re-converting files in {0} back to original format in {1}", intermediate1Path, intermediate2Path);
+            convertFiles(intermediate1Path, intermediate2Path, turtle);
+>>>>>>> Extended RoundTripTest with xml-turtle roundtrip.
             Debug.WriteLine("Comparing files in {0} to files in {1}", baseTestPath, intermediate2Path);
 
             List<string> errors = new List<string>();
@@ -137,7 +175,7 @@ namespace Hl7.Fhir.Tests.Serialization
         }
 
 
-        private void convertFiles(string inputPath, string outputPath)
+        private void convertFiles(string inputPath, string outputPath, bool turtle)
         {
             var files = Directory.EnumerateFiles(inputPath);
             if (!Directory.Exists(outputPath)) Directory.CreateDirectory(outputPath);
@@ -150,7 +188,7 @@ namespace Hl7.Fhir.Tests.Serialization
                     continue;
                 string exampleName = Path.GetFileNameWithoutExtension(file);
                 string ext = Path.GetExtension(file);
-                var toExt = ext == ".xml" ? ".json" : ".xml";
+                var toExt = ext == ".xml" ? (turtle?".ttl":".json") : ".xml";
                 string outputFile = Path.Combine(outputPath, exampleName) + toExt;
 
                 Debug.WriteLine("Converting {0} [{1}->{2}] ", exampleName, ext, toExt);
@@ -197,6 +235,7 @@ namespace Hl7.Fhir.Tests.Serialization
         private void compareFile(string expectedFile, string actualFile, List<string> errors)
         {
             if (expectedFile.EndsWith(".xml"))
+<<<<<<< HEAD
                 XmlAssert.AreSame(new FileInfo(expectedFile).Name, File.ReadAllText(expectedFile),
                     File.ReadAllText(actualFile));
             else
@@ -207,6 +246,15 @@ namespace Hl7.Fhir.Tests.Serialization
                                         File.ReadAllText(actualFile), errors);
                 }
             }
+=======
+                XmlAssert.AreSame(File.ReadAllText(expectedFile), File.ReadAllText(actualFile));
+            else if (expectedFile.EndsWith(".json"))
+                JsonAssert.AreSame(File.ReadAllText(expectedFile), File.ReadAllText(actualFile));
+            else if (expectedFile.EndsWith(".ttl"))
+                Debug.WriteLine("compare Turtle");
+            else
+                Debug.WriteLine("compare Something else?");
+>>>>>>> Extended RoundTripTest with xml-turtle roundtrip.
         }
 
         private bool isFeed(string filename)
@@ -230,6 +278,7 @@ namespace Hl7.Fhir.Tests.Serialization
         private void convertResource(string inputFile, string outputFile)
         {
             //TODO: call validation after reading
+<<<<<<< HEAD
             if (inputFile.Contains("expansions.") || inputFile.Contains("profiles-resources") || inputFile.Contains("profiles-others") || inputFile.Contains("valuesets."))
                 return;
             if (inputFile.EndsWith(".xml"))
@@ -243,16 +292,40 @@ namespace Hl7.Fhir.Tests.Serialization
                 Assert.IsFalse(resource.Matches(null), "Serialization of " + inputFile + " matched null - Matches test");
                 Assert.IsFalse(resource.IsExactly(null), "Serialization of " + inputFile + " matched null - IsExactly test");
 
+=======
+
+            if (inputFile.EndsWith(".xml") && outputFile.EndsWith(".json"))
+            {
+                var xml = File.ReadAllText(inputFile);
+                var resource = FhirParser.ParseResourceFromXml(xml);
+                //var r2 = resource.DeepCopy();
+>>>>>>> Extended RoundTripTest with xml-turtle roundtrip.
                 var json = FhirSerializer.SerializeResourceToJson(resource);
                 File.WriteAllText(outputFile, json);
             }
-            else
+            else if (inputFile.EndsWith(".json") && outputFile.EndsWith(".xml"))
             {
                 var json = File.ReadAllText(inputFile);
                 var resource = new FhirJsonParser().Parse<Resource>(json);
                 var xml = FhirSerializer.SerializeResourceToXml(resource);
                 File.WriteAllText(outputFile, xml);
             }
+            else if (inputFile.EndsWith(".xml") && outputFile.EndsWith(".ttl"))
+            {
+                var xml = File.ReadAllText(inputFile);
+                var resource = FhirParser.ParseResourceFromXml(xml);
+                var turtle = FhirSerializer.SerializeResourceToTurtle(resource);
+                File.WriteAllText(outputFile, turtle);
+            }
+            else if (inputFile.EndsWith(".ttl") && outputFile.EndsWith(".xml"))
+            {
+                var turtle = File.ReadAllText(inputFile);
+                var resource = FhirParser.ParseResourceFromTurtle(turtle);
+                var xml = FhirSerializer.SerializeResourceToXml(resource);
+                File.WriteAllText(outputFile, xml);
+            }
+            else
+                Debug.WriteLine("convertResource unsupported convertion");
         }
 
         private void convertFeed(string inputFile, string outputFile)
@@ -262,18 +335,31 @@ namespace Hl7.Fhir.Tests.Serialization
             if (inputFile.EndsWith(".xml"))
             {
                 var xml = File.ReadAllText(inputFile);
+<<<<<<< HEAD
                 var resource = new FhirXmlParser().Parse<Resource>(xml);
 
+=======
+                var resource = FhirParser.ParseResourceFromXml(xml);
+>>>>>>> Extended RoundTripTest with xml-turtle roundtrip.
                 var json = FhirSerializer.SerializeResourceToJson(resource);
                 File.WriteAllText(outputFile, json);
             }
-            else
+            else if (inputFile.EndsWith(".json"))
             {
                 var json = File.ReadAllText(inputFile);
                 var resource = new FhirJsonParser().Parse<Resource>(json);
                 var xml = FhirSerializer.SerializeResourceToXml(resource);
                 File.WriteAllText(outputFile, xml);
             }
+            else if (inputFile.EndsWith(".ttl"))
+            {
+                var turtle = File.ReadAllText(inputFile);
+                var resource = FhirParser.ParseResourceFromTurtle(turtle);
+                var xml = FhirSerializer.SerializeResourceToXml(resource);
+                File.WriteAllText(outputFile, xml);
+            }
+            else
+                Debug.WriteLine("convertFeed unsupported convertion");
         }
     }
 }
