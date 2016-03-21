@@ -12,6 +12,8 @@ This library provides:
 * Helper classes to work with the specification metadata, most notably `StructureDefinition` and generation of differentials
 * Validation of instances based on profiles
 * Evaluation [FhirPath][fhirpath-spec] expressions
+=======
+DISCLAIMER: The Turtle implementation and specs are still a WIP.
 
 The library is currently split up in four parts:
 * *Core* (NuGet packages starting with `Hl7.Fhir.<version>`) - contains the FhirClient and parsers
