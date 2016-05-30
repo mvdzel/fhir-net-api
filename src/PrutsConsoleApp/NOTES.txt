@@ -2,7 +2,7 @@
 20-may-2016
 - AssemblyInfo: Removed [assembly: AllowPartialTrustedCallers]
 - renamed predicate fhir:reference -> fhir:link
-- renamed predicate a sct:xxxxxx -> fhir:concept 
+- renamed predicate "rdf:type sct:xxxxxx" -> "fhir:concept sct:xxxxxx"
 - prefix for snomed codes is "http://snomed.info/id/"
 - fhir:index is xs:integer, can only do this in dotnetrdf by adding the datatype
 - predicate is now without "Reference" for non polymorph reference props e.g. used to be "subjectReference" is now "subject"
