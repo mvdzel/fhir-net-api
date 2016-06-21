@@ -104,11 +104,22 @@ namespace Hl7.Fhir.Serialization
 
         public void WritePrimitiveContents(object value, XmlSerializationHint xmlFormatHint)
         {
-            IUriNode pred = _g.CreateUriNode(string.Format("fhir:{0}", _currentMemberName));
+            IUriNode pred;
+            switch (xmlFormatHint)
+            {
+                case XmlSerializationHint.XhtmlElement:
+                    pred = _g.CreateUriNode(string.Format("fhir:{0}.{1}", _currentTypeName, _currentMemberName));
+                    break;
+                default:
+                    pred = _g.CreateUriNode(string.Format("fhir:{0}", _currentMemberName));
+                    break;
+            }
+
             var valueAsString = PrimitiveTypeConverter.ConvertTo<string>(value);
             INode obj;
             switch (_currentTypeName)
             {
+                /** STU3 decision is to encode FhirUri as rdf string
                 case "FhirUri":
                     Uri valueAsUri;
                     if (Uri.TryCreate(valueAsString, UriKind.Absolute, out valueAsUri))
@@ -124,7 +135,7 @@ namespace Hl7.Fhir.Serialization
                         Console.WriteLine("DEBUG uri failed fall back to literal: {0}", valueAsString);
                         obj = _g.CreateLiteralNode(valueAsString);
                     }
-                    break;
+                    break;*/
                 case "Instant":
                 case "FhirDateTime":
                     string dataType = "dateTime";

@@ -3,9 +3,12 @@ using Hl7.Fhir.Model;
 using Hl7.Fhir.Serialization;
 using System;
 using System.IO;
+using System.Net.Http;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace PrutsConsoleApp
 {
@@ -13,8 +16,69 @@ namespace PrutsConsoleApp
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("FHIR ModelInfo.Version: {0}", ModelInfo.Version);
+
             var prg = new Program();
-            prg.resourceFromFhirTurtleTest();
+            //prg.resourceFromFhirTurtleTest();
+            //prg.TurtleShexTest();
+            prg.fhirTestWriteTurtle();
+        }
+
+        /**
+         * Test the generated turtle against the ShEx using the REST service
+         */
+        private void TurtleShexTest()
+        {
+            //const string turtleFileName = @"C:\Users\zelm\AppData\Local\Temp\FHIRRoundTripTest\FromXml\intermediate1\observation-example-bloodpressure(blood-pressure).ttl";
+            //const string turtleFileName = @"C:\Box Sync\HL7\FHIR Turtle\observation-example-bloodpressureGG.ttl";
+            const string turtleFileName = @"C:\Box Sync\HL7\FHIR Turtle\observation-example-bloodpressure(blood-pressure).ttl";
+            //const string turtleFileName = @"C:\Users\zelm\AppData\Local\Temp\FHIRRoundTripTest\FromXml\intermediate1\allergyintolerance-example(example).ttl";
+
+            IGraph g = new Graph();
+            g.NamespaceMap.AddNamespace("fhir", UriFactory.Create("http://hl7.org/fhir/"));
+            g.NamespaceMap.AddNamespace("sct", UriFactory.Create("http://snomed.info/id/"));
+            g.NamespaceMap.AddNamespace("loinc", UriFactory.Create("http://loinc.org/"));
+
+            TurtleParser turtleParse = new TurtleParser();
+            turtleParse.Load(g, turtleFileName);
+
+            IUriNode pred = g.CreateUriNode("rdf:type");
+
+            System.Collections.Generic.Stack<Triple> tl = new System.Collections.Generic.Stack<Triple>(g.GetTriplesWithPredicate(pred));
+
+            // TODO: pass subject as focus!
+
+            string resourceType = tl.Pop().Object.ToString();
+            string ShexUri = string.Format("https://hl7-fhir.github.io/{0}.shex", resourceType.Substring(resourceType.LastIndexOf('/')+1).ToLower());
+            Console.WriteLine(ShexUri);
+
+            //var web = new System.Net.WebClient();
+            //string schema = web.DownloadString(ShexUri);
+            string schema = File.ReadAllText(@"C:\Box Sync\HL7\FHIR Turtle\observation.shex");
+            string data = File.ReadAllText(turtleFileName);
+            string shexValidator = "http://labs.5value.nl:4290/validate";
+
+            var client = new HttpClient();
+            var content = new MultipartFormDataContent();
+            var schemaContent = new StringContent(schema);
+            schemaContent.Headers.Add("Content-Disposition", "form-data; name=\"schema\"; filename=\"schema.shex\"");
+            content.Add(schemaContent);
+            content.Add(new StringContent(""), "start"); // START is in the ShEx
+            var dataContent = new StringContent(data);
+            dataContent.Headers.Add("Content-Disposition", "form-data; name=\"data\"; filename=\"data.ttl\"");
+            content.Add(dataContent);
+            content.Add(new StringContent(""), "focus");
+            content.Add(new StringContent(""), "focusType");
+            content.Add(new StringContent("raw"), "output");
+            var result = client.PostAsync(shexValidator, content);
+            Console.WriteLine(result.Result.ToString());
+            var jsonresult = result.Result.Content.ReadAsStringAsync().Result;
+
+            File.WriteAllText(@"c:\temp\shexresult.js", jsonresult);
+
+            var obj = JObject.Parse(jsonresult);
+            Console.WriteLine(obj.GetValue("type")); // type should not be "failure"
+            Console.ReadLine();
         }
 
         private void inspectorTest()

@@ -1,4 +1,10 @@
 ﻿
+21-jun-2016
+- TurtleFhirWriter: FhirUri is now written as simple string
+- Program: added ShexValidation service call try
+? "0"^^xs:decimal is serialized to 0 by RdfDotNet. ShEx now interprets this as xs:integer and fails because it expects a xs:decimal
+! All primitivecontent (div) only use membername as predicate except for XhtmlElement primitivecontent Narrative.div
+
 20-may-2016
 - AssemblyInfo: Removed [assembly: AllowPartialTrustedCallers]
 - renamed predicate fhir:reference -> fhir:link
