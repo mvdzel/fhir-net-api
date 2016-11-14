@@ -20,8 +20,8 @@ namespace PrutsConsoleApp
 
             var prg = new Program();
             //prg.resourceFromFhirTurtleTest();
-            //prg.TurtleShexTest();
-            prg.fhirTestWriteTurtle();
+            prg.TurtleShexTest();
+            //prg.fhirTestWriteTurtle();
         }
 
         /**
@@ -47,10 +47,15 @@ namespace PrutsConsoleApp
             System.Collections.Generic.Stack<Triple> tl = new System.Collections.Generic.Stack<Triple>(g.GetTriplesWithPredicate(pred));
 
             // TODO: pass subject as focus!
-
-            string resourceType = tl.Pop().Object.ToString();
+            Triple mainTriple = tl.Pop();
+            string resourceType = mainTriple.Object.ToString();
+            string start = resourceType;
+            string focus = mainTriple.Subject.ToString();
             string ShexUri = string.Format("https://hl7-fhir.github.io/{0}.shex", resourceType.Substring(resourceType.LastIndexOf('/')+1).ToLower());
-            Console.WriteLine(ShexUri);
+
+            Console.WriteLine("ShexUri: {0}", ShexUri);
+            Console.WriteLine("Start/ResourceType: {0}", start);
+            Console.WriteLine("Focus: {0}", focus);
 
             //var web = new System.Net.WebClient();
             //string schema = web.DownloadString(ShexUri);
@@ -63,11 +68,11 @@ namespace PrutsConsoleApp
             var schemaContent = new StringContent(schema);
             schemaContent.Headers.Add("Content-Disposition", "form-data; name=\"schema\"; filename=\"schema.shex\"");
             content.Add(schemaContent);
-            content.Add(new StringContent(""), "start"); // START is in the ShEx
+            content.Add(new StringContent(start), "start"); // START is in the ShEx
             var dataContent = new StringContent(data);
             dataContent.Headers.Add("Content-Disposition", "form-data; name=\"data\"; filename=\"data.ttl\"");
             content.Add(dataContent);
-            content.Add(new StringContent(""), "focus");
+            content.Add(new StringContent(focus), "focus");
             content.Add(new StringContent(""), "focusType");
             content.Add(new StringContent("raw"), "output");
             var result = client.PostAsync(shexValidator, content);
@@ -76,9 +81,35 @@ namespace PrutsConsoleApp
 
             File.WriteAllText(@"c:\temp\shexresult.js", jsonresult);
 
-            var obj = JObject.Parse(jsonresult);
-            Console.WriteLine(obj.GetValue("type")); // type should not be "failure"
+            var root = JObject.Parse(jsonresult);
+            if ("failure".Equals(root.GetValue("type").ToString()))
+            {
+                RecurseShexErrors(root);
+            }
+            else
+            {
+                Console.WriteLine("SUCCES!");
+            }
             Console.ReadLine();
+        }
+
+        private void RecurseShexErrors(JObject obj)
+        {
+            /** NB This does not work yet!!!!
+             */
+            Console.WriteLine("failure on {0}", obj.GetValue("node"));
+            int cnt = 0;
+            var errors = obj.GetValue("errors");
+            foreach (var error in errors.Children())
+            {
+                Console.WriteLine("#{0} {1}", cnt, error.Type.ToString());
+                if (error.Type == JTokenType.Object)
+                {
+                    var errorobj = (JObject)error;
+                    RecurseShexErrors(errorobj);
+                }
+                cnt++;
+            }
         }
 
         private void inspectorTest()
