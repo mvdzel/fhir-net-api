@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VDS.RDF;
+using VDS.RDF.Parsing;
 
 namespace Hl7.Fhir.Serialization
 {
@@ -13,6 +14,10 @@ namespace Hl7.Fhir.Serialization
         public IUriNode treeRoot;
         public IUriNode type;
         public IUriNode value;
+
+        public Uri dtDateTime = new Uri(XmlSpecsHelper.XmlSchemaDataTypeDateTime);
+        public Uri dtDecimal = new Uri(XmlSpecsHelper.XmlSchemaDataTypeDecimal);
+        public Uri dtInteger = new Uri(XmlSpecsHelper.XmlSchemaDataTypeInteger);
 
         public TurtleReusableNodes(IGraph g)
         {

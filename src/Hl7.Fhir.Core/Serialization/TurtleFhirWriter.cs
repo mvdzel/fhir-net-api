@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Hl7.Fhir.Introspection;
 using VDS.RDF;
 using VDS.RDF.Writing;
+using VDS.RDF.Parsing;
 
 namespace Hl7.Fhir.Serialization
 {
@@ -104,15 +105,24 @@ namespace Hl7.Fhir.Serialization
             INode obj;
             switch (_currentTypeName)
             {
-                case "FhirUri":
-                    Uri valueAsUri;
-                    if (Uri.TryCreate(valueAsString, UriKind.Absolute, out valueAsUri))
+                // case "Extension.url" used to be "FhirUri"
+                case "Extension":
+                    if("url".Equals(_currentMemberName))
                     {
-                        obj = _g.CreateUriNode(valueAsUri);
+                        pred = _g.CreateUriNode(string.Format("fhir:{0}.{1}", _currentTypeName, _currentMemberName));
+                        Uri valueAsUri;
+                        if (Uri.TryCreate(valueAsString, UriKind.Absolute, out valueAsUri))
+                        {
+                            obj = _g.CreateUriNode(valueAsUri);
+                        }
+                        else
+                        {
+                            Console.WriteLine("DEBUG uri is relative fall back to literal: {0}", valueAsString);
+                            obj = _g.CreateLiteralNode(valueAsString);
+                        }
                     }
                     else
                     {
-                        Console.WriteLine("DEBUG uri is relative fall back to literal: {0}", valueAsString);
                         obj = _g.CreateLiteralNode(valueAsString);
                     }
                     break;
@@ -136,10 +146,11 @@ namespace Hl7.Fhir.Serialization
                     else if (v.length() == 4)
                     xst = "^^xs:gYear";
                     }*/
-                    obj = _g.CreateLiteralNode(valueAsString, UriFactory.Create("xsd:dateTime"));
+                    
+                    obj = _g.CreateLiteralNode(valueAsString, new Uri(XmlSpecsHelper.XmlSchemaDataTypeDateTime));
                     break;
                 case "FhirDecimal":
-                    obj = _g.CreateLiteralNode(valueAsString, UriFactory.Create("xsd:decimal"));
+                    obj = _g.CreateLiteralNode(valueAsString, new Uri(XmlSpecsHelper.XmlSchemaDataTypeDecimal));
                     break;
                 // handle all others as xsd:string
                 default:
@@ -197,7 +208,7 @@ namespace Hl7.Fhir.Serialization
                 _currentSubj = _g.CreateBlankNode();
                 if(_arrayIndex >= 0)
                 {
-                    _g.Assert(_currentSubj, _g.CreateUriNode("fhir:index"), _g.CreateLiteralNode(_arrayIndex.ToString()));
+                    _g.Assert(_currentSubj, _g.CreateUriNode("fhir:index"), _g.CreateLiteralNode(_arrayIndex.ToString(), new Uri(XmlSpecsHelper.XmlSchemaDataTypeInteger)));
                     _arrayIndex++;
                 }
             }
