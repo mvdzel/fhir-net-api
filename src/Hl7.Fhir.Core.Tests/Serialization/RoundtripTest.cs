@@ -59,7 +59,7 @@ namespace Hl7.Fhir.Tests.Serialization
 
             Debug.WriteLine("Roundtripping xml->json->xml");
             createEmptyDir(baseTestPath);
-            doRoundTrip(examplesXml, baseTestPath);
+            doRoundTrip(examplesXml, baseTestPath, false);
         }
 
         [TestMethod]
@@ -74,9 +74,25 @@ namespace Hl7.Fhir.Tests.Serialization
 
             Debug.WriteLine("Roundtripping json->xml->json");
             createEmptyDir(baseTestPath);
-            doRoundTrip(examplesJson, baseTestPath);
+            doRoundTrip(examplesJson, baseTestPath, false);
         }
 
+        [TestMethod]
+        public void XmlTurtleRoundtripOfAllExamples()
+        {
+            ParserSettings.Default.AcceptUnknownMembers = true;
+
+            string examplesXml = @"TestData\examples.zip";
+
+            // Create an empty temporary directory for us to dump the roundtripped intermediary files in
+            string baseTestPath = Path.Combine(Path.GetTempPath(), "FHIRRoundTripTest");
+            createEmptyDir(baseTestPath);
+
+            Debug.WriteLine("First, roundtripping xml->turtle->xml");
+            var baseTestPathXml = Path.Combine(baseTestPath, "FromXml");
+            createEmptyDir(baseTestPathXml);
+            doRoundTrip(examplesXml, baseTestPathXml, true);
+        }
 
         //[TestMethod]
         //public void CompareIntermediate2Xml()
@@ -103,7 +119,7 @@ namespace Hl7.Fhir.Tests.Serialization
             Directory.CreateDirectory(baseTestPath);
         }
 
-        private void doRoundTrip(string examplesZip, string baseTestPath)
+        private void doRoundTrip(string examplesZip, string baseTestPath, bool turtle)
         {
             var examplePath = Path.Combine(baseTestPath, "input");
             Directory.CreateDirectory(examplePath);
@@ -116,7 +132,7 @@ namespace Hl7.Fhir.Tests.Serialization
             Debug.WriteLine("Converting files in {0} to {1}", baseTestPath, intermediate1Path);
             var sw = new Stopwatch();
             sw.Start();
-            convertFiles(examplePath, intermediate1Path);
+            convertFiles(examplePath, intermediate1Path, turtle);
             sw.Stop();
             Debug.WriteLine("Conversion took {0} seconds", sw.ElapsedMilliseconds / 1000);
             sw.Reset();
@@ -124,7 +140,7 @@ namespace Hl7.Fhir.Tests.Serialization
             var intermediate2Path = Path.Combine(baseTestPath, "intermediate2");
             Debug.WriteLine("Re-converting files in {0} back to original format in {1}", intermediate1Path, intermediate2Path);
             sw.Start();
-            convertFiles(intermediate1Path, intermediate2Path);
+            convertFiles(intermediate1Path, intermediate2Path, turtle);
             sw.Stop();
             Debug.WriteLine("Conversion took {0} seconds", sw.ElapsedMilliseconds / 1000);
             sw.Reset();
@@ -139,7 +155,7 @@ namespace Hl7.Fhir.Tests.Serialization
         }
 
 
-        private void convertFiles(string inputPath, string outputPath)
+        private void convertFiles(string inputPath, string outputPath, bool turtle)
         {
             var files = Directory.EnumerateFiles(inputPath);
             if (!Directory.Exists(outputPath)) Directory.CreateDirectory(outputPath);
@@ -152,7 +168,7 @@ namespace Hl7.Fhir.Tests.Serialization
                     continue;
                 string exampleName = Path.GetFileNameWithoutExtension(file);
                 string ext = Path.GetExtension(file);
-                var toExt = ext == ".xml" ? ".json" : ".xml";
+                var toExt = ext == ".xml" ? (turtle ? ".ttl" : ".json") : ".xml";
                 string outputFile = Path.Combine(outputPath, exampleName) + toExt;
 
                 Debug.WriteLine("Converting {0} [{1}->{2}] ", exampleName, ext, toExt);
@@ -200,8 +216,12 @@ namespace Hl7.Fhir.Tests.Serialization
         {
             if (expectedFile.EndsWith(".xml"))
                 XmlAssert.AreSame(new FileInfo(expectedFile).Name, File.ReadAllText(expectedFile), File.ReadAllText(actualFile));
-            else
+            else if (expectedFile.EndsWith(".json"))
                 JsonAssert.AreSame(new FileInfo(expectedFile).Name, File.ReadAllText(expectedFile), File.ReadAllText(actualFile), errors);
+            else if (expectedFile.EndsWith(".ttl"))
+                Debug.WriteLine("compare Turtle");
+            else
+                Debug.WriteLine("compare Something else?");
         }
 
         private bool isFeed(string filename)
@@ -257,17 +277,25 @@ namespace Hl7.Fhir.Tests.Serialization
             {
                 var xml = File.ReadAllText(inputFile);
                 var resource = new FhirXmlParser().Parse<Resource>(xml);
-
                 var json = FhirSerializer.SerializeResourceToJson(resource);
                 File.WriteAllText(outputFile, json);
             }
-            else
+            else if (inputFile.EndsWith(".json"))
             {
                 var json = File.ReadAllText(inputFile);
                 var resource = new FhirJsonParser().Parse<Resource>(json);
                 var xml = FhirSerializer.SerializeResourceToXml(resource);
                 File.WriteAllText(outputFile, xml);
             }
+            else if (inputFile.EndsWith(".ttl"))
+            {
+                var turtle = File.ReadAllText(inputFile);
+                var resource = FhirParser.ParseResourceFromTurtle(turtle);
+                var xml = FhirSerializer.SerializeResourceToXml(resource);
+                File.WriteAllText(outputFile, xml);
+            }
+            else
+                Debug.WriteLine("convertFeed unsupported convertion");
         }
     }
 }

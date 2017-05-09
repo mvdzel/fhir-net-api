@@ -277,11 +277,10 @@ namespace Hl7.Fhir.Serialization
         public static Base ParseFromTurtle(string turtle, Type dataType = null)
         {
             var reader = FhirReaderFromTurtle(turtle);
-            ParserSettings settings = new ParserSettings();
             if (dataType == null)
-                return new ResourceReader(reader, settings).Deserialize();
+                return new ResourceReader(reader, ParserSettings.Default).Deserialize();
             else
-                return new ComplexTypeReader(reader, settings).Deserialize(dataType);
+                return new ComplexTypeReader(reader, ParserSettings.Default).Deserialize(dataType);
         }
 
         [Obsolete("Create an instance of FhirXmlParser and call Parse<Resource>()")]
