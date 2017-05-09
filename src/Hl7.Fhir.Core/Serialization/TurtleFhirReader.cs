@@ -114,7 +114,7 @@ namespace Hl7.Fhir.Serialization
                         // Ignore turtle specific members
                         case "index":
                         case "nodeRole":
-                        case "reference":
+                        case "link":
                             continue;
                     }
                     string memberName = typePlusMemberName.Substring(typePlusMemberName.LastIndexOf('.') + 1);

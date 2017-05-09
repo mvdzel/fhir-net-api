@@ -238,7 +238,6 @@ namespace Hl7.Fhir.Serialization
 
         private static FhirXmlParser _xmlParser = new FhirXmlParser();
         private static FhirJsonParser _jsonParser = new FhirJsonParser();
-        private static FhirTurtleParser _turtleParser = new FhirTurtleParser();
 
         [Obsolete("Create an instance of FhirXmlParser and call Parse<Resource>()")]
         public static Resource ParseResourceFromXml(string xml)
@@ -278,8 +277,11 @@ namespace Hl7.Fhir.Serialization
         public static Base ParseFromTurtle(string turtle, Type dataType = null)
         {
             var reader = FhirReaderFromTurtle(turtle);
-            throw new NotImplementedException();
-            //return Parse(reader, dataType);
+            ParserSettings settings = new ParserSettings();
+            if (dataType == null)
+                return new ResourceReader(reader, settings).Deserialize();
+            else
+                return new ComplexTypeReader(reader, settings).Deserialize(dataType);
         }
 
         [Obsolete("Create an instance of FhirXmlParser and call Parse<Resource>()")]

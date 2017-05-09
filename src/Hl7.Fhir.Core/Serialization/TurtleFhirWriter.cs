@@ -157,7 +157,7 @@ namespace Hl7.Fhir.Serialization
                     Uri valueAsUri;
                     if (Uri.TryCreate(_g.BaseUri, valueAsString, out valueAsUri))
                     {
-                        _g.Assert(_subjStack.Peek(), _g.CreateUriNode("fhir:reference"), _g.CreateUriNode(valueAsUri));
+                        _g.Assert(_subjStack.Peek(), _g.CreateUriNode("fhir:link"), _g.CreateUriNode(valueAsUri));
                     }
                 }
             }
