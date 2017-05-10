@@ -77,23 +77,6 @@ namespace Hl7.Fhir.Tests.Serialization
             doRoundTrip(examplesJson, baseTestPath, false);
         }
 
-        [TestMethod]
-        public void XmlTurtleRoundtripOfAllExamples()
-        {
-            ParserSettings.Default.AcceptUnknownMembers = true;
-
-            string examplesXml = @"TestData\examples.zip";
-
-            // Create an empty temporary directory for us to dump the roundtripped intermediary files in
-            string baseTestPath = Path.Combine(Path.GetTempPath(), "FHIRRoundTripTest");
-            createEmptyDir(baseTestPath);
-
-            Debug.WriteLine("First, roundtripping xml->turtle->xml");
-            var baseTestPathXml = Path.Combine(baseTestPath, "FromXml");
-            createEmptyDir(baseTestPathXml);
-            doRoundTrip(examplesXml, baseTestPathXml, true);
-        }
-
         //[TestMethod]
         //public void CompareIntermediate2Xml()
         //{
@@ -111,6 +94,83 @@ namespace Hl7.Fhir.Tests.Serialization
         //    // json -> xml -> json
         //    compareFiles(@"C:\Users\ewout\AppData\Local\Temp\FHIRRoundTripTestJson\input", @"C:\Users\ewout\AppData\Local\Temp\FHIRRoundTripTestJson\intermediate2");
         //}
+
+        [TestMethod]
+        public void XmlTurtleRoundtripOfAllExamples()
+        {
+            ParserSettings.Default.AcceptUnknownMembers = true;
+
+            string examplesXml = @"TestData\examples.zip";
+
+            // Create an empty temporary directory for us to dump the roundtripped intermediary files in
+            string baseTestPath = Path.Combine(Path.GetTempPath(), "FHIRRoundTripTest");
+            createEmptyDir(baseTestPath);
+
+            Debug.WriteLine("First, roundtripping xml->turtle->xml");
+            var baseTestPathXml = Path.Combine(baseTestPath, "FromXml");
+            createEmptyDir(baseTestPathXml);
+            doRoundTrip(examplesXml, baseTestPathXml, true);
+        }
+
+        [TestMethod]
+        //
+        // This method does not extract the zip file
+        //
+        public void XmlTurtleRoundtripOfAllExamples2()
+        {
+            ParserSettings.Default.AcceptUnknownMembers = true;
+
+            // Create an empty temporary directory for us to dump the roundtripped intermediary files in
+            string baseTestPath = Path.Combine(Path.GetTempPath(), @"FHIRRoundTripTest\FromXml");
+
+            var examplePath = Path.Combine(baseTestPath, "input");
+
+            var intermediate1Path = Path.Combine(baseTestPath, "intermediate1");
+            Debug.WriteLine("Converting files in {0} to {1}", baseTestPath, intermediate1Path);
+            var sw = new Stopwatch();
+            sw.Start();
+            convertFiles(examplePath, intermediate1Path, true);
+            sw.Stop();
+            Debug.WriteLine("Conversion took {0} seconds", sw.ElapsedMilliseconds / 1000);
+            sw.Reset();
+
+            var intermediate2Path = Path.Combine(baseTestPath, "intermediate2");
+            Debug.WriteLine("Re-converting files in {0} back to original format in {1}", intermediate1Path, intermediate2Path);
+            sw.Start();
+            convertFiles(intermediate1Path, intermediate2Path, true);
+            sw.Stop();
+            Debug.WriteLine("Conversion took {0} seconds", sw.ElapsedMilliseconds / 1000);
+            sw.Reset();
+
+            Debug.WriteLine("Comparing files in {0} to files in {1}", baseTestPath, intermediate2Path);
+            List<string> errors = new List<string>();
+            compareFiles(examplePath, intermediate2Path, errors);
+            Console.WriteLine("------------------------------------------------");
+            Console.WriteLine(String.Join("\r\n", errors));
+            Assert.AreEqual(0, errors.Count, "Errors were encountered comparing converted content");
+        }
+
+        [TestMethod]
+        //
+        // This method only compares the files
+        //
+        public void XmlTurtleRoundtripOfAllExamples3()
+        {
+            ParserSettings.Default.AcceptUnknownMembers = true;
+
+            // Create an empty temporary directory for us to dump the roundtripped intermediary files in
+            string baseTestPath = Path.Combine(Path.GetTempPath(), @"FHIRRoundTripTest\FromXml");
+
+            var examplePath = Path.Combine(baseTestPath, "input");
+
+            var intermediate2Path = Path.Combine(baseTestPath, "intermediate2");
+            Debug.WriteLine("Comparing files in {0} to files in {1}", baseTestPath, intermediate2Path);
+            List<string> errors = new List<string>();
+            compareFiles(examplePath, intermediate2Path, errors);
+            Console.WriteLine("------------------------------------------------");
+            Console.WriteLine(String.Join("\r\n", errors));
+            Assert.AreEqual(0, errors.Count, "Errors were encountered comparing converted content");
+        }
 
 
         private static void createEmptyDir(string baseTestPath)
@@ -218,7 +278,7 @@ namespace Hl7.Fhir.Tests.Serialization
             else if (expectedFile.EndsWith(".json"))
                 JsonAssert.AreSame(new FileInfo(expectedFile).Name, File.ReadAllText(expectedFile), File.ReadAllText(actualFile), errors);
             else if (expectedFile.EndsWith(".ttl"))
-                Debug.WriteLine("compare Turtle");
+                TurtleAssert.AreSame(new FileInfo(expectedFile).Name, File.ReadAllText(expectedFile), File.ReadAllText(actualFile));
             else
                 Debug.WriteLine("compare Something else?");
         }

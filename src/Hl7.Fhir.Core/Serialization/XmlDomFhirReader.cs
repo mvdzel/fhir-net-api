@@ -193,5 +193,7 @@ namespace Hl7.Fhir.Serialization
                 return li.LinePosition;
             }
         }
+
+        public string Path { get { return ""; } }
     }
 }

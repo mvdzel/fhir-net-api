@@ -183,7 +183,7 @@ namespace Hl7.Fhir.Support
 
             if (pos != null)
             {
-                excMessage = String.Format("At line {0}, pos {1}: {2}", pos.LineNumber, pos.LinePosition, message);
+                excMessage = String.Format("At line {0}, pos {1} {2}: {3}", pos.LineNumber, pos.LinePosition, pos.Path, message);
             }
             else
                 excMessage = Error.formatMessage(message);

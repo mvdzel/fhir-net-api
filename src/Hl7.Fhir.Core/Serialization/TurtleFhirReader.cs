@@ -84,21 +84,9 @@ namespace Hl7.Fhir.Serialization
             throw Error.Format("Unable to determin resourcetype from turtle", null);
         }
 
-        public int LineNumber
-        {
-            get
-            {
-                return -1;
-            }
-        }
-
-        public int LinePosition
-        {
-            get
-            {
-                return -1;
-            }
-        }
+        public int LineNumber { get { return -1; } }
+        public int LinePosition { get { return -1; } }
+        public string Path {  get { return string.Format("{0} {1}",_currentSubj.ToString(), _currentPred.ToString()); } }
 
         public IEnumerable<Tuple<string, IFhirReader>> GetMembers()
         {
