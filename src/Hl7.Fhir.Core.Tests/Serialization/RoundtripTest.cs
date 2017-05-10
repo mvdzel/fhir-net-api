@@ -125,7 +125,6 @@ namespace Hl7.Fhir.Tests.Serialization
             Directory.CreateDirectory(examplePath);
             // Unzip files into this path
             Debug.WriteLine("Unzipping example files from {0} to {1}", examplesZip, examplePath);
-
             ZipFile.ExtractToDirectory(examplesZip, examplePath);
 
             var intermediate1Path = Path.Combine(baseTestPath, "intermediate1");
@@ -246,7 +245,8 @@ namespace Hl7.Fhir.Tests.Serialization
             //TODO: call validation after reading
             if (inputFile.Contains("expansions.") || inputFile.Contains("profiles-resources") || inputFile.Contains("profiles-others") || inputFile.Contains("valuesets."))
                 return;
-            if (inputFile.EndsWith(".xml"))
+
+/*            if (inputFile.EndsWith(".xml"))
             {
                 var xml = File.ReadAllText(inputFile);
                 var resource = new FhirXmlParser().Parse<Resource>(xml);
@@ -259,14 +259,38 @@ namespace Hl7.Fhir.Tests.Serialization
 
                 var json = FhirSerializer.SerializeResourceToJson(resource);
                 File.WriteAllText(outputFile, json);
+            }*/
+
+            if (inputFile.EndsWith(".xml") && outputFile.EndsWith(".json"))
+            {
+                var xml = File.ReadAllText(inputFile);
+                var resource = FhirParser.ParseResourceFromXml(xml);
+                var json = FhirSerializer.SerializeResourceToJson(resource);
+                File.WriteAllText(outputFile, json);
             }
-            else
+            else if (inputFile.EndsWith(".json") && outputFile.EndsWith(".xml"))
             {
                 var json = File.ReadAllText(inputFile);
-                var resource = new FhirJsonParser().Parse<Resource>(json);
+                var resource = FhirParser.ParseResourceFromJson(json);
                 var xml = FhirSerializer.SerializeResourceToXml(resource);
                 File.WriteAllText(outputFile, xml);
             }
+            else if (inputFile.EndsWith(".xml") && outputFile.EndsWith(".ttl"))
+            {
+                var xml = File.ReadAllText(inputFile);
+                var resource = FhirParser.ParseResourceFromXml(xml);
+                var turtle = FhirSerializer.SerializeResourceToTurtle(resource);
+                File.WriteAllText(outputFile, turtle);
+            }
+            else if (inputFile.EndsWith(".ttl") && outputFile.EndsWith(".xml"))
+            {
+                var turtle = File.ReadAllText(inputFile);
+                var resource = FhirParser.ParseResourceFromTurtle(turtle);
+                var xml = FhirSerializer.SerializeResourceToXml(resource);
+                File.WriteAllText(outputFile, xml);
+            }
+            else
+                Debug.WriteLine("convertResource unsupported convertion");
         }
 
         private void convertFeed(string inputFile, string outputFile)
