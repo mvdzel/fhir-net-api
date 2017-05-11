@@ -47,6 +47,7 @@ namespace Hl7.Fhir.Tests.Serialization
             var outputXml2 = FhirSerializer.SerializeResourceToXml(t2);
             XmlAssert.AreSame(exampleXml, original, outputXml2);
         }
+
         [TestMethod]
         [TestCategory("LongRunner")]
         public void FullRoundtripOfAllExamplesXml()

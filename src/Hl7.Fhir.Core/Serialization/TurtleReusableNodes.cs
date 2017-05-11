@@ -14,6 +14,7 @@ namespace Hl7.Fhir.Serialization
         public IUriNode treeRoot;
         public IUriNode type;
         public IUriNode value;
+        public IUriNode index;
 
         public Uri dtDateTime = new Uri(XmlSpecsHelper.XmlSchemaDataTypeDateTime);
         public Uri dtDecimal = new Uri(XmlSpecsHelper.XmlSchemaDataTypeDecimal);
@@ -25,6 +26,7 @@ namespace Hl7.Fhir.Serialization
             treeRoot = g.CreateUriNode("fhir:treeRoot");
             type = g.CreateUriNode("rdf:type");
             value = g.CreateUriNode("fhir:value");
+            index = g.CreateUriNode("fhir:index");
         }
 
     }

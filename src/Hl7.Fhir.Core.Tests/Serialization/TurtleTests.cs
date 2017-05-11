@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using Hl7.Fhir.Tests;
 
 namespace Hl7.Fhir.Serialization
 {
@@ -10,9 +11,27 @@ namespace Hl7.Fhir.Serialization
         [TestMethod]
         public void TestOne()
         {
-            string inputFile = @"C:\Users\zelm\AppData\Local\Temp\FHIRRoundTripTest\FromXml\intermediate1\diagnosticreport-examples-general(72ac8493-52ac-41bd-8d5d-7258c289b5ea).ttl";
+            string inputFile = @"C:\Users\zelm\AppData\Local\Temp\FHIRRoundTripTest\FromXml\intermediate1\bundle-transaction(bundle-transaction).ttl";
             var turtle = File.ReadAllText(inputFile);
             var resource = FhirParser.ParseResourceFromTurtle(turtle);
+        }
+
+        [TestMethod]
+        public void RoundTripOneExampleTurtle()
+        {
+            string inputFile = @"C:\Users\zelm\AppData\Local\Temp\FHIRRoundTripTest\FromXml\input\bundle-transaction(bundle-transaction).xml";
+            string outputFile = @"c:\temp\output.xml";
+
+            var xmlExp = File.ReadAllText(inputFile);
+            var resourceXml = FhirParser.ParseResourceFromXml(xmlExp);
+            var turtle = FhirSerializer.SerializeResourceToTurtle(resourceXml);
+
+            var resourceTurtle = FhirParser.ParseResourceFromTurtle(turtle);
+            var xmlAct = FhirSerializer.SerializeResourceToXml(resourceTurtle);
+
+            File.WriteAllText(outputFile, xmlAct);
+
+            XmlAssert.AreSame("RoundTripOneExampleTurtle", xmlExp, xmlAct);
         }
     }
 }

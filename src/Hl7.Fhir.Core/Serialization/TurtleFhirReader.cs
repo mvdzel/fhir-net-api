@@ -118,7 +118,33 @@ namespace Hl7.Fhir.Serialization
                     members.Add(new Tuple<string, IFhirReader>(memberName, new TurtleFhirReader(_g, t.Predicate, t.Object)));
                 }
             }
+
+            // Sort members based on fhir:index predicate of the members
+            members.Sort(delegate (Tuple<string, IFhirReader> x, Tuple<string, IFhirReader> y)
+            {
+                int xindex = ((TurtleFhirReader)x.Item2).FhirIndex();
+                int yindex = ((TurtleFhirReader)y.Item2).FhirIndex();
+                if (xindex == yindex) return 0;
+                else if (xindex < yindex) return -1;
+                else if (xindex > yindex) return 1;
+                else return 0;
+            });
+
             return members.AsEnumerable<Tuple<string, IFhirReader>>();
+        }
+
+        // if there is a index predicate in this subject return its value
+        private int FhirIndex()
+        {
+            Triple tIndex = _g.GetTriplesWithSubjectPredicate(_currentSubj, nodes.index).FirstOrDefault();
+            if (tIndex?.Object is ILiteralNode)
+            {
+                return int.Parse(((ILiteralNode)tIndex.Object).Value);
+            }
+            else
+            {
+                return -1;
+            }
         }
 
         public object GetPrimitiveValue()
