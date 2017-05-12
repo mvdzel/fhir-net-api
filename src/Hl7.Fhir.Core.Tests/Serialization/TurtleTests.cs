@@ -19,7 +19,8 @@ namespace Hl7.Fhir.Serialization
         [TestMethod]
         public void RoundTripOneExampleTurtle()
         {
-            string inputFile = @"C:\Users\zelm\AppData\Local\Temp\FHIRRoundTripTest\FromXml\input\bundle-transaction(bundle-transaction).xml";
+//            string inputFile = @"C:\Users\zelm\AppData\Local\Temp\FHIRRoundTripTest\FromXml\input\bundle-transaction(bundle-transaction).xml";
+            string inputFile = @"C:\Users\zelm\AppData\Local\Temp\FHIRRoundTripTest\FromXml\input\careplan-example(example).xml";
             string outputFile = @"c:\temp\output.xml";
 
             var xmlExp = File.ReadAllText(inputFile);

@@ -84,9 +84,11 @@ namespace Hl7.Fhir.Serialization
             throw Error.Format("Unable to determin resourcetype from turtle", null);
         }
 
+        #region IPositionInfo
         public int LineNumber { get { return -1; } }
         public int LinePosition { get { return -1; } }
         public string Path {  get { return string.Format("{0} {1}",_currentSubj.ToString(), _currentPred.ToString()); } }
+        #endregion
 
         public IEnumerable<Tuple<string, IFhirReader>> GetMembers()
         {
@@ -97,9 +99,9 @@ namespace Hl7.Fhir.Serialization
                 if (pred.StartsWith(FHIR_PREFIX))
                 {
                     string typePlusMemberName = pred.Substring(pred.LastIndexOf('/') + 1);
+                    // Ignore turtle specific members
                     switch (typePlusMemberName)
                     {
-                        // Ignore turtle specific members
                         case "index":
                         case "nodeRole":
                         case "link":
@@ -134,6 +136,7 @@ namespace Hl7.Fhir.Serialization
         }
 
         // if there is a index predicate in this subject return its value
+        // needed to restore the order in an array
         private int FhirIndex()
         {
             Triple tIndex = _g.GetTriplesWithSubjectPredicate(_currentSubj, nodes.index).FirstOrDefault();

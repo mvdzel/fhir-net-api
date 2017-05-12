@@ -25,6 +25,8 @@ namespace Hl7.Fhir.Serialization
         private int _arrayIndex = -1;
         private Stack<int> _arrayIndexStack = new Stack<int>();
 
+        private static TurtleReusableNodes nodes;
+
         private bool _first = true;
 
         private bool _coding = false;
@@ -43,6 +45,11 @@ namespace Hl7.Fhir.Serialization
             _g.NamespaceMap.AddNamespace("fhir", UriFactory.Create("http://hl7.org/fhir/"));
             _g.NamespaceMap.AddNamespace("sct", UriFactory.Create("http://snomed.info/sct/"));
             _g.NamespaceMap.AddNamespace("loinc", UriFactory.Create("http://loinc.org/owl#"));
+
+            if (nodes == null)
+            {
+                nodes = new TurtleReusableNodes(_g);
+            }
         }
 
         public string turtleAsString()
@@ -117,7 +124,7 @@ namespace Hl7.Fhir.Serialization
                         }
                         else
                         {
-                            Console.WriteLine("DEBUG uri is relative fall back to literal: {0}", valueAsString);
+                            Console.Error.WriteLine("DEBUG uri is relative fall back to literal: {0}", valueAsString);
                             obj = _g.CreateLiteralNode(valueAsString);
                         }
                     }
@@ -181,12 +188,12 @@ namespace Hl7.Fhir.Serialization
                 switch (_coding_system_value)
                 {
                     case "http://snomed.info/sct":
-                        //Console.WriteLine("DEBUG: sct:{0}", valueAsString);
+                        //Console.Error.WriteLine("DEBUG: sct:{0}", valueAsString);
                         IUriNode code = _g.CreateUriNode(string.Format("sct:{0}", valueAsString));
                         _g.Assert(_subjStack.Peek(), _g.CreateUriNode("rdf:type"), code);
                         break;
                     case "http://loinc.org":
-                        //Console.WriteLine("DEBUG: loinc:{0}", valueAsString);
+                        //Console.Error.WriteLine("DEBUG: loinc:{0}", valueAsString);
                         code = _g.CreateUriNode(string.Format("loinc:{0}", valueAsString));
                         _g.Assert(_subjStack.Peek(), _g.CreateUriNode("rdf:type"), code);
                         break;
@@ -208,7 +215,7 @@ namespace Hl7.Fhir.Serialization
                 _currentSubj = _g.CreateBlankNode();
                 if(_arrayIndex >= 0)
                 {
-                    _g.Assert(_currentSubj, _g.CreateUriNode("fhir:index"), _g.CreateLiteralNode(_arrayIndex.ToString(), new Uri(XmlSpecsHelper.XmlSchemaDataTypeInteger)));
+                    _g.Assert(_currentSubj,  nodes.index, _g.CreateLiteralNode(_arrayIndex.ToString(), new Uri(XmlSpecsHelper.XmlSchemaDataTypeInteger)));
                     _arrayIndex++;
                 }
             }
@@ -285,7 +292,11 @@ namespace Hl7.Fhir.Serialization
             }
 
             _currentTypeName = name;
-            if (id != null)
+            if (contained || id == null)
+            {
+                _currentSubj = _g.CreateBlankNode();
+            }
+            else if (id != null)
             {
                 Uri valueAsUri;
                 if (Uri.TryCreate(_g.BaseUri, _currentTypeName + '/' + id, out valueAsUri))
@@ -293,14 +304,15 @@ namespace Hl7.Fhir.Serialization
                     _currentSubj = _g.CreateUriNode(valueAsUri);
                 }
             }
-            else
-            {
-                _currentSubj = _g.CreateBlankNode();
-            }
-            _g.Assert(_currentSubj, _g.CreateUriNode("rdf:type"), _g.CreateUriNode("fhir:" + _currentTypeName));
+            _g.Assert(_currentSubj, nodes.type, _g.CreateUriNode("fhir:" + _currentTypeName));
             if(!contained)
             {
-                _g.Assert(_currentSubj, _g.CreateUriNode("fhir:nodeRole"), _g.CreateUriNode("fhir:treeRoot"));
+                _g.Assert(_currentSubj, nodes.nodeRole, nodes.treeRoot);
+            }
+            else
+            {
+                _g.Assert(_currentSubj, nodes.index, _g.CreateLiteralNode(_arrayIndex.ToString(), new Uri(XmlSpecsHelper.XmlSchemaDataTypeInteger)));
+                _arrayIndex++;
             }
         }
 

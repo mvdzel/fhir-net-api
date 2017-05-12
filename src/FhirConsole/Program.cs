@@ -60,9 +60,6 @@ namespace FhirConsole
 
                 Console.WriteLine("---- turtle ----");
                 Console.WriteLine(FhirSerializer.SerializeResourceToTurtle(pat));
-                Console.WriteLine("Done");
-
-                Console.ReadLine();
             }
         }
     }
