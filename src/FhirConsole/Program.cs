@@ -1,4 +1,5 @@
 ﻿using Hl7.Fhir.Model;
+using Hl7.Fhir.Rest;
 using Hl7.Fhir.Serialization;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace FhirConsole
 
             if (args.Length == 2)
             {
-                var outputType = args[0];
+                var command = args[0];
                 var input = File.ReadAllText(args[1]);
                 Resource resource = null;
                 if (SerializationUtil.ProbeIsJson(input))
@@ -37,16 +38,35 @@ namespace FhirConsole
                     resource = FhirParser.ParseResourceFromTurtle(input);
                 }
 
-                switch(outputType)
+                switch(command)
                 {
-                    case "-j":
+                    case "-oj":
+                        Console.Error.WriteLine(">> Output JSON");
                         Console.WriteLine(FhirSerializer.SerializeResourceToJson(resource));
                         break;
-                    case "-x":
+                    case "-ox":
+                        Console.Error.WriteLine(">> Output XML");
                         Console.WriteLine(FhirSerializer.SerializeResourceToXml(resource));
                         break;
-                    case "-t":
+                    case "-ot":
+                        Console.Error.WriteLine(">> Output Turtle");
                         Console.WriteLine(FhirSerializer.SerializeResourceToTurtle(resource));
+                        break;
+                    /**
+                     * When <fhir:id> is set use update!!!
+                     * For the ZIB LoMo this is the case.
+                     */
+                    case "-hu":
+                        Console.Error.WriteLine(">> Update @HAPI");
+                        FhirClient client = new FhirClient("http://fhirtest.uhn.ca/baseDstu2");
+                        var response = client.Update(resource);
+                        Console.WriteLine(FhirSerializer.SerializeResourceToXml(response));
+                        break;
+                    case "-hc":
+                        Console.Error.WriteLine(">> Create @HAPI");
+                        client = new FhirClient("http://fhirtest.uhn.ca/baseDstu2");
+                        response = client.Create(resource);
+                        Console.WriteLine(FhirSerializer.SerializeResourceToXml(response));
                         break;
                 }
             }
