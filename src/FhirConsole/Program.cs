@@ -14,12 +14,6 @@ namespace FhirConsole
     {
         static void Main(string[] args)
         {
-            /*
-                -t -> Turtle
-                -j -> JSON
-                -x -> XML
-             */
-
             if (args.Length == 2)
             {
                 var command = args[0];
@@ -72,14 +66,20 @@ namespace FhirConsole
             }
             else
             {
-                var pat = new Patient();
-                pat.Name.Add(HumanName.ForFamily("World").WithGiven("Hello"));
+                Console.WriteLine(@"Use the fhir-net-api from the command line.
 
-                Console.WriteLine("---- json ----");
-                Console.WriteLine(FhirSerializer.SerializeResourceToJson(pat));
+FhirConsole [-o[x|j|t]|-h[c|u]] [input-fhir-file] > [output-fhir-file]
 
-                Console.WriteLine("---- turtle ----");
-                Console.WriteLine(FhirSerializer.SerializeResourceToTurtle(pat));
+  Input-fhir-file type is detected automatically.
+
+  -ox   Serialize [input-fhir-file] as XML
+  -oj   Serialize [input-fhir-file] as JSON
+  -ot   Serialize [input-fhir-file] as Turtle
+
+  -hc   REST create [input-fhir-file] to http://fhirtest.uhn.ca/baseDstu2
+  -hu   REST update [input-fhir-file] to http://fhirtest.uhn.ca/baseDstu2
+");
+
             }
         }
     }
