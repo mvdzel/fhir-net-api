@@ -62,11 +62,20 @@ namespace FhirConsole
                         response = client.Create(resource);
                         Console.WriteLine(FhirSerializer.SerializeResourceToXml(response));
                         break;
+                    default:
+                        usage();
+                        break;
                 }
             }
             else
             {
-                Console.WriteLine(@"Use the fhir-net-api from the command line.
+                usage();
+            }
+        }
+
+        static void usage()
+        {
+            Console.WriteLine(@"Use the fhir-net-api from the command line.
 
 FhirConsole [-o[x|j|t]|-h[c|u]] [input-fhir-file] > [output-fhir-file]
 
@@ -79,8 +88,6 @@ FhirConsole [-o[x|j|t]|-h[c|u]] [input-fhir-file] > [output-fhir-file]
   -hc   REST create [input-fhir-file] to http://fhirtest.uhn.ca/baseDstu2
   -hu   REST update [input-fhir-file] to http://fhirtest.uhn.ca/baseDstu2
 ");
-
-            }
         }
     }
 }
